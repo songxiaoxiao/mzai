@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-website-backend
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/ai_website?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: 123123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # MyBatis-Plus配置
+  mybatis-plus:
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    global-config:
+      db-config:
+        id-type: auto
+        logic-delete-field: deleted
+        logic-delete-value: 1
+        logic-not-delete-value: 0
+    mapper-locations: classpath*:/mapper/**/*.xml
+  
+  # Spring AI配置
+  ai:
+    openai:
+      api-key: your-openai-api-key
+      base-url: https://api.openai.com/v1
+      chat:
+        options:
+          model: gpt-3.5-turbo
+          temperature: 0.7
+          max-tokens: 1000
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: llama2
+          temperature: 0.7
+  
+  security:
+    user:
+      name: admin
+      password: admin
+
+# AI提供商配置 (openai 或 ollama)
+ai:
+  provider: openai
+  # 积分配置
+  points:
+    chat: 10
+    text-generation: 20
+    image-recognition: 30
+    speech-to-text: 25
+    code-generation: 40
+    document-summary: 35
+
+jwt:
+  secret: aiWebsiteSecretKey2024VeryLongAndSecure
+  expiration: 86400000 # 24小时
+
+logging:
+  level:
+    com.aiwebsite: DEBUG
+    org.springframework.security: DEBUG
+    com.baomidou.mybatisplus: DEBUG 
