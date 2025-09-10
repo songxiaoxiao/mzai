@@ -23,8 +23,8 @@ const CodeGeneration: React.FC = () => {
     try {
       const response = await aiAPI.processFunction('code-generation', input);
       
-      if (response.data.success) {
-        setOutput(response.data.data);
+      if (response.success) {
+        setOutput(response.data);
         message.success('代码生成成功！');
       }
     } catch (error: any) {

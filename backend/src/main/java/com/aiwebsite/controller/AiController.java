@@ -33,6 +33,13 @@ public class AiController {
                 return ResponseEntity.badRequest().body(ApiResponse.error("输入内容不能为空"));
             }
             
+            // 检查功能是否可用
+            if (!aiService.isFunctionAvailable(functionName)) {
+                return ResponseEntity.badRequest().body(
+                    ApiResponse.error("功能不可用: " + functionName)
+                );
+            }
+            
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             User user = userService.findByUsername(username).orElseThrow();
             
@@ -43,76 +50,64 @@ public class AiController {
         }
     }
     
+    /**
+     * 聊天功能 - 保留独立接口以保持兼容性
+     */
     @PostMapping("/chat")
     public ResponseEntity<ApiResponse<String>> chat(@RequestBody Map<String, String> request) {
-        try {
-            String message = request.get("message");
-            if (message == null || message.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("消息内容不能为空"));
-            }
-            
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userService.findByUsername(username).orElseThrow();
-            
-            String response = aiService.chat(user.getId(), message);
-            return ResponseEntity.ok(ApiResponse.success("聊天成功", response));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        String message = request.get("message");
+        if (message == null || message.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("消息内容不能为空"));
         }
+        
+        // 转发到通用处理接口
+        request.put("input", message);
+        return processAiFunction("chat", request);
     }
     
+    /**
+     * 代码生成功能 - 保留独立接口以保持兼容性
+     */
     @PostMapping("/code-generation")
     public ResponseEntity<ApiResponse<String>> generateCode(@RequestBody Map<String, String> request) {
-        try {
-            String requirements = request.get("requirements");
-            if (requirements == null || requirements.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("需求描述不能为空"));
-            }
-            
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userService.findByUsername(username).orElseThrow();
-            
-            String code = aiService.generateCode(user.getId(), requirements);
-            return ResponseEntity.ok(ApiResponse.success("代码生成成功", code));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        String requirements = request.get("requirements");
+        if (requirements == null || requirements.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("需求描述不能为空"));
         }
+        
+        // 转发到通用处理接口
+        request.put("input", requirements);
+        return processAiFunction("code-generation", request);
     }
     
+    /**
+     * 文本生成功能 - 保留独立接口以保持兼容性
+     */
     @PostMapping("/text-generation")
     public ResponseEntity<ApiResponse<String>> generateText(@RequestBody Map<String, String> request) {
-        try {
-            String prompt = request.get("prompt");
-            if (prompt == null || prompt.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("提示词不能为空"));
-            }
-            
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userService.findByUsername(username).orElseThrow();
-            
-            String text = aiService.generateText(user.getId(), prompt);
-            return ResponseEntity.ok(ApiResponse.success("文本生成成功", text));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        String prompt = request.get("prompt");
+        if (prompt == null || prompt.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("提示词不能为空"));
         }
+        
+        // 转发到通用处理接口
+        request.put("input", prompt);
+        return processAiFunction("text-generation", request);
     }
     
+    /**
+     * 文档摘要功能 - 保留独立接口以保持兼容性
+     */
     @PostMapping("/document-summary")
     public ResponseEntity<ApiResponse<String>> summarizeDocument(@RequestBody Map<String, String> request) {
-        try {
-            String document = request.get("document");
-            if (document == null || document.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("文档内容不能为空"));
-            }
-            
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            User user = userService.findByUsername(username).orElseThrow();
-            
-            String summary = aiService.summarizeDocument(user.getId(), document);
-            return ResponseEntity.ok(ApiResponse.success("文档摘要成功", summary));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        String document = request.get("document");
+        if (document == null || document.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("文档内容不能为空"));
         }
+        
+        // 转发到通用处理接口
+        request.put("input", document);
+        return processAiFunction("document-summary", request);
     }
     
     @PostMapping("/movie-clip")
@@ -164,17 +159,10 @@ public class AiController {
     }
     
     @GetMapping("/functions")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getAvailableFunctions() {
+    public ResponseEntity<ApiResponse<Object>> getAvailableFunctions() {
         try {
-            Map<String, Object> functions = Map.of(
-                "chat", Map.of("name", "智能对话", "description", "与AI助手进行智能对话"),
-                "text-generation", Map.of("name", "文本生成", "description", "生成创意文本内容"),
-                "image-recognition", Map.of("name", "图像识别", "description", "识别图像中的内容"),
-                "speech-to-text", Map.of("name", "语音转文字", "description", "将语音转换为文字"),
-                "code-generation", Map.of("name", "代码生成", "description", "根据需求生成代码"),
-                "document-summary", Map.of("name", "文档总结", "description", "智能总结文档内容"),
-                "movie-clip", Map.of("name", "电影快剪", "description", "使用AI智能剪辑视频，快速生成精彩片段")
-            );
+            // 使用配置服务获取功能信息
+            var functions = aiService.getAllFunctionConfigs();
             return ResponseEntity.ok(ApiResponse.success(functions));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));

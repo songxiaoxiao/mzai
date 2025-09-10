@@ -29,8 +29,8 @@ const Profile: React.FC = () => {
         setUser(userResponse.data.data);
         form.setFieldsValue(userResponse.data.data);
       }
-      if (pointsResponse.data.success) {
-        setPoints(pointsResponse.data.data);
+      if (pointsResponse.success) {
+        setPoints(pointsResponse.data);
       }
     } catch (error) {
       console.error('获取用户数据失败:', error);

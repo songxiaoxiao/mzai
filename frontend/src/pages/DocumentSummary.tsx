@@ -22,8 +22,8 @@ const DocumentSummary: React.FC = () => {
     try {
       const response = await aiAPI.processFunction('document-summary', input);
       
-      if (response.data.success) {
-        setOutput(response.data.data);
+      if (response.success) {
+        setOutput(response.data);
         message.success('文档总结完成！');
       }
     } catch (error: any) {

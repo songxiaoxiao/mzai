@@ -26,8 +26,8 @@ const SpeechToText: React.FC = () => {
       const mockAudioData = "模拟的语音数据";
       const response = await aiAPI.processFunction('speech-to-text', mockAudioData);
       
-      if (response.data.success) {
-        setTranscript(response.data.data);
+      if (response.success) {
+        setTranscript(response.data);
         message.success('语音转文字完成！');
       }
     } catch (error: any) {

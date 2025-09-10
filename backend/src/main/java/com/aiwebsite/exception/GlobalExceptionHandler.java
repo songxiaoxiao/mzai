@@ -37,6 +37,28 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * 处理积分不足异常
+     */
+    @ExceptionHandler(InsufficientPointsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleInsufficientPointsException(
+            InsufficientPointsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * 处理AI功能异常
+     */
+    @ExceptionHandler(AiFunctionException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAiFunctionException(
+            AiFunctionException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("AI功能处理失败: " + ex.getMessage()));
+    }
+    
+    /**
      * 处理业务异常
      */
     @ExceptionHandler(RuntimeException.class)

@@ -38,10 +38,10 @@ const Chat: React.FC = () => {
     try {
       const response = await aiAPI.processFunction('chat', input);
       
-      if (response.data.success) {
+      if (response.success) {
         const aiMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
-          content: response.data.data,
+          content: response.data,
           isUser: false,
           timestamp: new Date()
         };

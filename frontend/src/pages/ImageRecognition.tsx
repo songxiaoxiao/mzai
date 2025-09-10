@@ -41,8 +41,8 @@ const ImageRecognition: React.FC = () => {
     try {
       const response = await aiAPI.processFunction('image-recognition', imageData);
       
-      if (response.data.success) {
-        setResult(response.data.data);
+      if (response.success) {
+        setResult(response.data);
         message.success('图像识别完成！');
       }
     } catch (error: any) {

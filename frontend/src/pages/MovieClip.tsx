@@ -62,11 +62,11 @@ const MovieClip: React.FC = () => {
 
       const response = await aiAPI.movieClip(formData);
       
-      if (response.data.success) {
-        setResult(response.data.data);
+      if (response.success) {
+        setResult(response.data);
         message.success('电影快剪处理成功！');
       } else {
-        message.error(response.data.message || '处理失败');
+        message.error(response.message || '处理失败');
       }
     } catch (error: any) {
       console.error('电影快剪处理失败:', error);

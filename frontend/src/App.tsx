@@ -16,10 +16,14 @@ import SpeechToText from './pages/SpeechToText';
 import CodeGeneration from './pages/CodeGeneration';
 import DocumentSummary from './pages/DocumentSummary';
 import MovieClip from './pages/MovieClip';
+import TransactionHistory from './pages/TransactionHistory';
 
 // 组件
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Context
+import { PointsProvider } from './contexts/PointsContext';
 
 // 样式
 import './index.css';
@@ -37,13 +41,16 @@ const App: React.FC = () => {
             {/* 受保护的路由 */}
             <Route path="/" element={
               <ProtectedRoute>
-                <Layout />
+                <PointsProvider>
+                  <Layout />
+                </PointsProvider>
               </ProtectedRoute>
             }>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
               <Route path="ai-functions" element={<AiFunctions />} />
+              <Route path="transaction-history" element={<TransactionHistory />} />
               <Route path="chat" element={<Chat />} />
               <Route path="text-generation" element={<TextGeneration />} />
               <Route path="image-recognition" element={<ImageRecognition />} />

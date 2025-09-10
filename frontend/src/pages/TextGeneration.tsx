@@ -21,8 +21,8 @@ const TextGeneration: React.FC = () => {
     try {
       const response = await aiAPI.processFunction('text-generation', input);
       
-      if (response.data.success) {
-        setOutput(response.data.data);
+      if (response.success) {
+        setOutput(response.data);
         message.success('文本生成成功！');
       }
     } catch (error: any) {

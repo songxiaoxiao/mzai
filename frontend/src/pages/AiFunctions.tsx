@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Button, Space, Tag } from 'antd';
+import { Card, Row, Col, Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { 
   MessageOutlined, 
   FileTextOutlined, 
@@ -9,17 +9,22 @@ import {
   BookOutlined,
   ScissorOutlined,
   ArrowRightOutlined,
-  RobotOutlined
+  RobotOutlined,
+  ExclamationCircleOutlined,
+  WalletOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { aiAPI } from '../services/api';
 import { AiFunctionPoints } from '../types';
+import { usePoints } from '../contexts/PointsContext';
 
 const { Title, Text } = Typography;
 
 const AiFunctions: React.FC = () => {
   const navigate = useNavigate();
   const [functionPoints, setFunctionPoints] = useState<AiFunctionPoints>({});
+  const [loading, setLoading] = useState(true);
+  const { points: userPoints } = usePoints();
 
   useEffect(() => {
     fetchFunctionPoints();
@@ -28,12 +33,57 @@ const AiFunctions: React.FC = () => {
   const fetchFunctionPoints = async () => {
     try {
       const response = await aiAPI.getFunctionPoints();
-      if (response.data.success) {
-        setFunctionPoints(response.data.data);
+      if (response.success) {
+        setFunctionPoints(response.data);
       }
     } catch (error) {
       console.error('获取功能积分失败:', error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // 积分预检查功能
+  const handleUseFunction = (func: any) => {
+    const requiredPoints = functionPoints[func.key] || 0;
+    
+    if (userPoints < requiredPoints) {
+      Modal.confirm({
+        title: '积分不足',
+        icon: <ExclamationCircleOutlined />,
+        content: (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span>功能名称:</span>
+              <strong>{func.title}</strong>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span>需要积分:</span>
+              <strong className="text-blue-600">{requiredPoints}</strong>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span>当前积分:</span>
+              <strong className="text-red-500">{userPoints}</strong>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span>还需积分:</span>
+              <strong className="text-orange-500">{requiredPoints - userPoints}</strong>
+            </div>
+            <p className="text-center mt-4">是否前往个人中心充值？</p>
+          </div>
+        ),
+        onOk() {
+          navigate('/profile');
+        },
+        okText: '去充值',
+        cancelText: '取消',
+        width: 400,
+      });
+      return;
+    }
+    
+    // 积分足够，跳转到功能页面
+    navigate(func.path);
   };
 
   const aiFunctions = [
@@ -95,14 +145,28 @@ const AiFunctions: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <Title level={2} className="gradient-text mb-2">
-          AI功能中心
-        </Title>
-        <Text type="secondary" className="text-lg">
-          探索我们提供的各种AI功能，助力您的工作和生活
-        </Text>
-      </div>
+      {/* 用户积分显示 */}
+      <Card className="glass">
+        <div className="flex items-center justify-between">
+          <div>
+            <Title level={2} className="gradient-text mb-2">
+              AI功能中心
+            </Title>
+            <Text type="secondary" className="text-lg">
+              探索我们提供的各种AI功能，助力您的工作和生活
+            </Text>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center space-x-2 mb-2">
+              <WalletOutlined className="text-blue-500 text-xl" />
+              <Title level={3} className="mb-0 text-blue-600">
+                {userPoints}
+              </Title>
+            </div>
+            <Text type="secondary">当前积分</Text>
+          </div>
+        </div>
+      </Card>
 
       <Row gutter={[16, 16]}>
         {aiFunctions.map((func) => (
@@ -122,9 +186,16 @@ const AiFunctions: React.FC = () => {
                   {func.description}
                 </Text>
                 <div className="mb-4">
-                  <Tag color="blue">
-                    消耗积分: {functionPoints[func.key] || 0}
-                  </Tag>
+                  <div className="flex items-center justify-center space-x-2">
+                    <Tag color={userPoints >= (functionPoints[func.key] || 0) ? "green" : "red"}>
+                      消耗积分: {functionPoints[func.key] || 0}
+                    </Tag>
+                    {userPoints >= (functionPoints[func.key] || 0) ? (
+                      <Tag color="success">可使用</Tag>
+                    ) : (
+                      <Tag color="error">积分不足</Tag>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -144,10 +215,11 @@ const AiFunctions: React.FC = () => {
                 type="primary"
                 block
                 icon={<ArrowRightOutlined />}
-                onClick={() => navigate(func.path)}
+                onClick={() => handleUseFunction(func)}
                 className="btn-primary"
+                disabled={userPoints < (functionPoints[func.key] || 0)}
               >
-                立即使用
+                {userPoints >= (functionPoints[func.key] || 0) ? '立即使用' : '积分不足'}
               </Button>
             </Card>
           </Col>

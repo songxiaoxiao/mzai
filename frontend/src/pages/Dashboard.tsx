@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Progress, Typography, Button, Space } from 'antd';
+import { Card, Row, Col, Statistic, Progress, Typography, Button, Space, message, Modal } from 'antd';
 import { 
   UserOutlined, 
   RobotOutlined, 
@@ -10,20 +10,23 @@ import {
   AudioOutlined,
   CodeOutlined,
   BookOutlined,
-  ArrowRightOutlined
+  ArrowRightOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { userAPI, aiAPI } from '../services/api';
 import { User, AiFunctionPoints } from '../types';
+import { usePoints } from '../contexts/PointsContext';
+import PointsDisplay from '../components/PointsDisplay';
 
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [points, setPoints] = useState(0);
   const [functionPoints, setFunctionPoints] = useState<AiFunctionPoints>({});
   const [loading, setLoading] = useState(true);
+  const { points, refreshPoints } = usePoints();
 
   useEffect(() => {
     fetchDashboardData();
@@ -31,26 +34,50 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [userResponse, pointsResponse, functionsResponse] = await Promise.all([
+      const [userResponse, functionsResponse] = await Promise.all([
         userAPI.getProfile(),
-        userAPI.getPoints(),
         aiAPI.getFunctionPoints()
       ]);
 
-      if (userResponse.data.success) {
-        setUser(userResponse.data.data);
+      if (userResponse.success) {
+        setUser(userResponse.data);
       }
-      if (pointsResponse.data.success) {
-        setPoints(pointsResponse.data.data);
-      }
-      if (functionsResponse.data.success) {
-        setFunctionPoints(functionsResponse.data.data);
+      if (functionsResponse.success) {
+        setFunctionPoints(functionsResponse.data);
       }
     } catch (error) {
       console.error('获取仪表盘数据失败:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // 积分预检查功能
+  const handleFunctionClick = (func: any) => {
+    const requiredPoints = functionPoints[func.key] || 0;
+    
+    if (points < requiredPoints) {
+      Modal.confirm({
+        title: '积分不足',
+        icon: <ExclamationCircleOutlined />,
+        content: (
+          <div>
+            <p>使用 <strong>{func.title}</strong> 需要 <strong>{requiredPoints}</strong> 积分</p>
+            <p>您当前只有 <strong>{points}</strong> 积分</p>
+            <p>是否前往充值页面？</p>
+          </div>
+        ),
+        onOk() {
+          navigate('/profile'); // 假设个人中心有充值功能
+        },
+        okText: '去充值',
+        cancelText: '取消',
+      });
+      return;
+    }
+    
+    // 积分足够，跳转到功能页面
+    navigate(func.path);
   };
 
   const aiFunctions = [
@@ -116,19 +143,18 @@ const Dashboard: React.FC = () => {
         </Text>
       </div>
 
+      {/* 积分显示 */}
+      <div className="mb-8">
+        <PointsDisplay 
+          showDetails={true}
+          showProgress={true}
+          size="large"
+        />
+      </div>
+
       {/* 统计卡片 */}
       <Row gutter={[16, 16]} className="mb-8">
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="glass card-hover">
-            <Statistic
-              title="当前积分"
-              value={points}
-              prefix={<WalletOutlined className="text-blue-500" />}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <Card className="glass card-hover">
             <Statistic
               title="AI功能"
@@ -138,7 +164,7 @@ const Dashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <Card className="glass card-hover">
             <Statistic
               title="账户状态"
@@ -148,7 +174,7 @@ const Dashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <Card className="glass card-hover">
             <Statistic
               title="使用次数"
@@ -170,7 +196,7 @@ const Dashboard: React.FC = () => {
             <Col xs={24} sm={12} lg={8} key={func.key}>
               <Card 
                 className="glass card-hover cursor-pointer"
-                onClick={() => navigate(func.path)}
+                onClick={() => handleFunctionClick(func)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -184,10 +210,20 @@ const Dashboard: React.FC = () => {
                       <Text type="secondary" className="text-sm">
                         {func.description}
                       </Text>
-                      <div className="mt-2">
+                      <div className="mt-2 flex items-center justify-between">
                         <Text type="secondary" className="text-xs">
                           消耗积分: {functionPoints[func.key] || 0}
                         </Text>
+                        {points < (functionPoints[func.key] || 0) && (
+                          <span className="text-red-500 text-xs font-semibold">
+                            积分不足
+                          </span>
+                        )}
+                        {points >= (functionPoints[func.key] || 0) && (
+                          <span className="text-green-500 text-xs font-semibold">
+                            可使用
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -204,7 +240,7 @@ const Dashboard: React.FC = () => {
         <Title level={3} className="mb-6 text-white">
           快速操作
         </Title>
-        <Space size="large">
+        <Space size="large" wrap>
           <Button 
             type="primary" 
             size="large"
@@ -219,6 +255,14 @@ const Dashboard: React.FC = () => {
             className="btn-secondary"
           >
             查看所有功能
+          </Button>
+          <Button 
+            size="large"
+            icon={<WalletOutlined />}
+            onClick={() => navigate('/transaction-history')}
+            className="btn-secondary"
+          >
+            积分历史
           </Button>
         </Space>
       </div>
