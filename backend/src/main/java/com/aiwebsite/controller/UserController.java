@@ -2,6 +2,7 @@ package com.aiwebsite.controller;
 
 import com.aiwebsite.dto.ApiResponse;
 import com.aiwebsite.dto.UserDto;
+import com.aiwebsite.dto.UserUpdateDto;
 import com.aiwebsite.entity.User;
 import com.aiwebsite.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +32,12 @@ public class UserController {
     }
     
     @PutMapping("/profile")
-    public ResponseEntity<ApiResponse<User>> updateProfile(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<ApiResponse<User>> updateProfile(@Valid @RequestBody UserUpdateDto userUpdateDto) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             User currentUser = userService.findByUsername(username).orElseThrow();
             
-            User updatedUser = userService.updateUser(currentUser.getId(), userDto);
+            User updatedUser = userService.updateUser(currentUser.getId(), userUpdateDto);
             return ResponseEntity.ok(ApiResponse.success("更新成功", updatedUser));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));

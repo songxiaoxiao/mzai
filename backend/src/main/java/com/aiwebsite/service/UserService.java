@@ -1,6 +1,7 @@
 package com.aiwebsite.service;
 
 import com.aiwebsite.dto.UserDto;
+import com.aiwebsite.dto.UserUpdateDto;
 import com.aiwebsite.entity.User;
 import com.aiwebsite.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -84,6 +85,19 @@ public class UserService implements UserDetailsService {
     }
     
     /**
+     * 更新用户信息（使用UserUpdateDto）
+     */
+    @Transactional
+    public User updateUser(Long userId, UserUpdateDto userUpdateDto) {
+        User user = findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        
+        updateUserFieldsFromUpdateDto(user, userUpdateDto);
+        userMapper.updateById(user);
+        return user;
+    }
+    
+    /**
      * 更新用户积分
      */
     @Transactional
@@ -154,6 +168,29 @@ public class UserService implements UserDetailsService {
         }
         if (userDto.getAvatarUrl() != null) {
             user.setAvatarUrl(userDto.getAvatarUrl());
+        }
+    }
+    
+    /**
+     * 从UserUpdateDto更新用户字段
+     */
+    private void updateUserFieldsFromUpdateDto(User user, UserUpdateDto userUpdateDto) {
+        if (userUpdateDto.getEmail() != null) {
+            // 检查邮箱是否已被其他用户使用
+            if (!user.getEmail().equals(userUpdateDto.getEmail()) && 
+                userMapper.existsByEmail(userUpdateDto.getEmail())) {
+                throw new RuntimeException("邮箱已被使用");
+            }
+            user.setEmail(userUpdateDto.getEmail());
+        }
+        if (userUpdateDto.getFullName() != null) {
+            user.setFullName(userUpdateDto.getFullName());
+        }
+        if (userUpdateDto.getPhoneNumber() != null) {
+            user.setPhoneNumber(userUpdateDto.getPhoneNumber());
+        }
+        if (userUpdateDto.getAvatarUrl() != null) {
+            user.setAvatarUrl(userUpdateDto.getAvatarUrl());
         }
     }
 } 
