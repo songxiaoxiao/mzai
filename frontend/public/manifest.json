@@ -1,0 +1,19 @@
+{
+  "short_name": "AI创作平台",
+  "name": "AI内容创作平台",
+  "description": "高端科技，智能未来",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "zh-CN"
+}
