@@ -145,7 +145,7 @@ const Layout: React.FC = () => {
       >
         <div className="p-4 text-center transition-all duration-300">
           <h1 className={`text-white font-bold ${collapsed ? 'text-lg' : 'text-xl'} drop-shadow-lg transition-all duration-300`}>
-            {collapsed ? 'AI' : 'AI功能平台'}
+            {collapsed ? 'AI' : 'AI内容创作平台'}
           </h1>
         </div>
         

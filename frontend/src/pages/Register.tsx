@@ -38,7 +38,7 @@ const Register: React.FC = () => {
               </div>
             </div>
             <Title level={2} className="gradient-text mb-2">
-              AI功能平台
+            AI内容创作平台
             </Title>
             <Text type="secondary" className="text-lg">
               创建您的账户，开启AI之旅
@@ -166,7 +166,7 @@ const Register: React.FC = () => {
 
         <div className="text-center mt-6">
           <Text type="secondary" className="text-sm">
-            © 2024 AI功能平台. 高端科技，智能未来.
+            © 2024 AI内容创作平台. 高端科技，智能未来.
           </Text>
         </div>
       </div>

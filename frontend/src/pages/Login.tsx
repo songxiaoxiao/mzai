@@ -16,14 +16,41 @@ const Login: React.FC = () => {
     try {
       const response = await authAPI.login(values);
       
-      if (response.data.success) {
-        const { token, user } = response.data.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+      // 添加调试信息
+      console.log('登录响应:', response);
+      console.log('响应数据:', response.data);
+      console.log('响应成功标志:', response.success);
+      
+      // 检查两种可能的响应格式
+      if (response.success || response.data?.success) {
+        // 尝试两种数据结构
+        const responseData = response.data || response;
+        const token = responseData.data?.token || responseData.token;
+        const user = responseData.data?.user || responseData.user;
+        
+        console.log('提取的token:', token);
+        console.log('提取的user:', user);
+        
+        if (token) {
+          localStorage.setItem('token', token);
+          console.log('Token已保存到localStorage');
+        }
+        
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+          console.log('用户信息已保存到localStorage');
+        }
+        
         message.success('登录成功！');
+        console.log('准备跳转到dashboard...');
         navigate('/dashboard');
+      } else {
+        console.error('登录失败: success字段为false');
+        message.error('登录失败：服务器返回失败状态');
       }
     } catch (error: any) {
+      console.error('登录异常:', error);
+      console.error('错误响应:', error.response);
       message.error(error.response?.data?.error || '登录失败，请检查用户名和密码');
     } finally {
       setLoading(false);
@@ -41,7 +68,7 @@ const Login: React.FC = () => {
               </div>
             </div>
             <Title level={2} className="gradient-text mb-2">
-              AI功能平台
+            AI内容创作平台
             </Title>
             <Text type="secondary" className="text-lg">
               欢迎回来，请登录您的账户
@@ -113,7 +140,7 @@ const Login: React.FC = () => {
 
         <div className="text-center mt-6">
           <Text type="secondary" className="text-sm">
-            © 2024 AI功能平台. 高端科技，智能未来.
+            © 2024 AI内容创作平台. 高端科技，智能未来.
           </Text>
         </div>
       </div>
